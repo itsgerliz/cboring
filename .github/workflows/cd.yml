@@ -1,0 +1,35 @@
+name: Rust CD
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+    - name: Create release
+      run: |
+        TAG_NAME="$GITHUB_REF_NAME"
+        
+        RELEASE_NOTES=$(git show "$TAG_NAME" --format="%B")
+
+        if [ -z $RELEASE_NOTES ]; then
+          RELEASE_NOTES="Release $TAG_NAME"
+        fi
+
+        gh release create "$TAG_NAME" \
+          --title "$TAG_NAME" \
+          --notes "$RELEASE_NOTES"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
