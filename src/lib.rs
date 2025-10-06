@@ -1,5 +1,7 @@
 //! A CBOR implementation for the serde framework
 
-mod error;
+pub mod error;
+
 mod major;
+mod enc;
 mod ser;
