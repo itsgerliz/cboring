@@ -1,7 +1,10 @@
+//! Error types
+
 use std::fmt::Display;
 use serde::{de, ser};
 use thiserror::Error;
 
+/// The main error type, it represents either an encoding or decoding error
 #[derive(Error, Debug)]
 pub enum Error {
 	#[error("Error when encoding a CBOR sequence")]
