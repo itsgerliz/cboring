@@ -22,6 +22,7 @@ pub enum Error {
 /// Represents possible errors when encoding a CBOR data item
 #[derive(Error, Debug)]
 pub enum EncodeError {
+	/// Represents a serde error when serializing
 	#[error("Error when serializing")]
 	Serialization(String),
 	#[error("Input/Output error")]
@@ -31,6 +32,7 @@ pub enum EncodeError {
 /// Represents possible errors when decoding a CBOR data item
 #[derive(Error, Debug)]
 pub enum DecodeError {
+	/// Represents a serde error when deserializing
 	#[error("Error when deserializing")]
 	Deserialization(String)
 }
