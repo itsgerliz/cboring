@@ -1,9 +1,46 @@
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use serde::ser::{Serialize, Serializer, Impossible};
 use crate::error::EncodeError;
 
-struct Encoder<W: Write> {
-	writer: W
+/// The encoder type, encodes Rust types into CBOR data written to a writer
+pub struct Encoder<W: Write> {
+	writer: BufWriter<W>
+}
+
+impl<W: Write> Encoder<W> {
+	/// Constructs a new encoder that will write its output to the inner writer _destination_
+	/// # Example
+	/// ```
+	/// use cboring::serde::ser::Encoder;
+	/// use std::io;
+	/// 
+	/// let my_encoder = Encoder::into_writer(io::stdout());
+	/// ```
+	pub fn into_writer(destination: W) -> Self {
+		Self {
+			writer: BufWriter::new(destination)
+		}
+	}
+
+	/// Though dropping the encoder will automatically try to flush its inner buffer it is highly
+	/// recommendable to use this method on the encoder before dropping it  
+	/// If this method is ommited and the encoder is just dropped and any I/O error occurs when
+	/// trying to flush the inner buffer data may be lost and not written to the inner writer
+	/// # Example
+	/// ```
+	/// use cboring::serde::ser::Encoder;
+	/// use std::io;
+	/// 
+	/// let mut my_encoder = Encoder::into_writer(io::stdout());
+	/// // We encode our CBOR data...
+	/// // Before reaching the end of the scope and dropping the encoder instance we ensure data is
+	/// // written to the writer (the standard output) without errors
+	/// my_encoder.flush().unwrap()
+	/// // Here we assume it won't fail but we should check for a possible IO error in a real case
+	/// ```
+	pub fn flush(&mut self) -> Result<(), EncodeError> {
+		Ok(self.writer.flush()?)
+	}
 }
 
 impl<W: Write> Serializer for Encoder<W> {
