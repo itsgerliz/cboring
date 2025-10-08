@@ -3,12 +3,20 @@ use serde::de::Deserializer;
 
 use crate::error::DecodeError;
 
-/// The decoder type, reads our CBOR data from a reader and decodes it into Rust types
+/// The decoder type, reads CBOR data from a reader and decodes it into Rust types
 pub struct Decoder<R: Read> {
 	reader: BufReader<R>
 }
 
 impl<R: Read> Decoder<R> {
+	/// Constructs a new decoder that will take its input from _origin_
+	/// # Example
+	/// ```
+	/// use cboring::serde::de::Decoder;
+	/// use std::io;
+	/// 
+	/// let my_decoder = Decoder::from_reader(io::stdin());
+	/// ```
 	pub fn from_reader(origin: R) -> Self {
 		Self {
 			reader: BufReader::new(origin)
