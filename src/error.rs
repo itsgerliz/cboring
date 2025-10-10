@@ -1,5 +1,3 @@
-//! Error types
-
 use std::{
 	io,
 	fmt::Display
@@ -10,7 +8,6 @@ use serde::{
 };
 use thiserror::Error;
 
-/// The main error type, represents either an encoding or decoding error
 #[derive(Error, Debug)]
 pub enum Error {
 	#[error("Error when encoding a CBOR sequence")]
@@ -19,22 +16,20 @@ pub enum Error {
 	Decode(#[from] DecodeError)
 }
 
-/// Represents possible errors when encoding a CBOR data item
 #[derive(Error, Debug)]
 pub enum EncodeError {
-	/// Represents a serde error when serializing
 	#[error("Error when serializing")]
 	Serialization(String),
 	#[error("Input/Output error")]
 	IO(#[from] io::Error)
 }
 
-/// Represents possible errors when decoding a CBOR data item
 #[derive(Error, Debug)]
 pub enum DecodeError {
-	/// Represents a serde error when deserializing
 	#[error("Error when deserializing")]
-	Deserialization(String)
+	Deserialization(String),
+	#[error("Input/Output error")]
+	IO(#[from] io::Error),
 }
 
 impl ser::Error for EncodeError {
