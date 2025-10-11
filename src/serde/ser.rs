@@ -18,7 +18,7 @@ impl<W: Write> Encoder<W> {
     }
 }
 
-impl<W: Write> Serializer for Encoder<W> {
+impl<W: Write> Serializer for &mut Encoder<W> {
     type Ok = ();
     type Error = EncodeError;
 
@@ -31,7 +31,8 @@ impl<W: Write> Serializer for Encoder<W> {
     type SerializeStructVariant = Impossible<Self::Ok, Self::Error>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        let byte: u8 = if v { 0xF5 } else { 0xF4 };
+        Ok(self.writer.write_all(&[byte])?)
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
