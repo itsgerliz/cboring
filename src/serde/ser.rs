@@ -36,7 +36,20 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        if v < 0 { // Signed (negative)
+            let encoded_value: u8 = (-1 - v) as u8;
+            if encoded_value < 24 {
+                Ok(self.writer.write_all(&[(0b001_00000 | encoded_value)])?)
+            } else {
+                Ok(self.writer.write_all(&[0x38, encoded_value])?)
+            }
+        } else { // Unsigned (zero or positive)
+            if v < 24 {
+                Ok(self.writer.write_all(&[0b000_00000 | (v as u8)])?)
+            } else {
+                Ok(self.writer.write_all(&[0x18, (v as u8)])?)
+            }
+        }
     }
 
     fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
