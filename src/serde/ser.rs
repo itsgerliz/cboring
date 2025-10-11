@@ -61,7 +61,7 @@ impl<W: Write> Serializer for &mut Encoder<W> {
                 let encoded_value_bigend: [u8; 2] = encoded_value.to_be_bytes();
                 Ok(self.writer.write_all(&[0x39, encoded_value_bigend[0], encoded_value_bigend[1]])?)
             }
-        } else { // unsigned (zero or positive) (0..=32_767)
+        } else { // Unsigned (zero or positive) (0..=32_767)
             if v < 24 {
                 Ok(self.writer.write_all(&[0b000_00000 | (v as u8)])?)
             } else {
@@ -72,7 +72,24 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        if v < 0 { // Signed (negative) (-2_147_483_648..=-1)
+            let encoded_value: u32 = (-1 - v) as u32;
+            if encoded_value < 24 {
+                Ok(self.writer.write_all(&[(0b001_00000 | (encoded_value as u8))])?)
+            } else {
+                let encoded_value_bigend: [u8; 4] = encoded_value.to_be_bytes();
+                Ok(self.writer.write_all(&[0x3A, encoded_value_bigend[0], encoded_value_bigend[1],
+                encoded_value_bigend[2], encoded_value_bigend[3]])?)
+            }
+        } else { // Unsigned (zero or positive) (0..=2_147_483_647)
+            if v < 24 {
+                Ok(self.writer.write_all(&[0b000_00000 | (v as u8)])?)
+            } else {
+                let encoded_value_bigend: [u8; 4] = v.to_be_bytes();
+                Ok(self.writer.write_all(&[0x1A, encoded_value_bigend[0], encoded_value_bigend[1],
+                encoded_value_bigend[2], encoded_value_bigend[3]])?)
+            }
+        }
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
