@@ -117,14 +117,19 @@ impl<W: Write> Serializer for &mut Encoder<W> {
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
         if v < 24 {
-            Ok(self.writer.write_all(&[0b000_00000 | v])?)
+            Ok(self.writer.write_all(&[(0b000_00000 | v)])?)
         } else {
             Ok(self.writer.write_all(&[0x18, v])?)
         }
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        if v < 24 {
+            Ok(self.writer.write_all(&[(0b000_00000 | (v as u8))])?)
+        } else {
+            let encoded_value_bigend: [u8; 2] = v.to_be_bytes();
+            Ok(self.writer.write_all(&[0x19, encoded_value_bigend[0], encoded_value_bigend[1]])?)
+        }
     }
 
     fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
