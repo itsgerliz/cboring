@@ -133,11 +133,24 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        if v < 24 {
+            Ok(self.writer.write_all(&[(0b000_00000 | (v as u8))])?)
+        } else {
+            let encoded_value_bigend: [u8; 4] = v.to_be_bytes();
+            Ok(self.writer.write_all(&[0x1A, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3]])?)
+        }
     }
 
     fn serialize_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        if v < 24 {
+            Ok(self.writer.write_all(&[(0b000_00000 | (v as u8))])?)
+        } else {
+            let encoded_value_bigend: [u8; 8] = v.to_be_bytes();
+            Ok(self.writer.write_all(&[0x1B, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3], encoded_value_bigend[4],
+            encoded_value_bigend[5], encoded_value_bigend[6], encoded_value_bigend[7]])?)
+        }
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
