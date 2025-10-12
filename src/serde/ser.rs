@@ -140,7 +140,12 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        let byte: u8 = 0b011_00000 | (v.len_utf8() as u8);
+        let mut buf: [u8; 4] = [0; 4];
+        let utf8_bytes = v.encode_utf8(&mut buf).as_bytes();
+        self.writer.write_all(&[byte])?;
+        self.writer.write_all(utf8_bytes)?;
+        Ok(())
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
