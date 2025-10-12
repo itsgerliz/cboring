@@ -149,7 +149,36 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        let v_len = v.len();
+        if v_len < 24 {
+            self.writer.write_all(&[(0b011_00000 | (v_len as u8))])?;
+            self.writer.write_all(v.as_bytes())?;
+            Ok(())
+        } else if v_len <= (u8::MAX as usize) {
+            self.writer.write_all(&[0x78, (v_len as u8)])?;
+            self.writer.write_all(v.as_bytes())?;
+            Ok(())
+        } else if v_len <= (u16::MAX as usize) {
+            let encoded_value_bigend: [u8; 2] = (v_len as u16).to_be_bytes();
+            self.writer.write_all(&[0x79, encoded_value_bigend[0], encoded_value_bigend[1]])?;
+            self.writer.write_all(v.as_bytes())?;
+            Ok(())
+        } else if v_len <= (u32::MAX as usize) {
+            let encoded_value_bigend: [u8; 4] = (v_len as u32).to_be_bytes();
+            self.writer.write_all(&[0x7A, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3]])?;
+            self.writer.write_all(v.as_bytes())?;
+            Ok(())
+        } else if v_len <= (u64::MAX as usize) {
+            let encoded_value_bigend: [u8; 8] = (v_len as u64).to_be_bytes();
+            self.writer.write_all(&[0x7B, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3], encoded_value_bigend[4],
+            encoded_value_bigend[5], encoded_value_bigend[6], encoded_value_bigend[7]])?;
+            self.writer.write_all(v.as_bytes())?;
+            Ok(())
+        } else {
+            Err(EncodeError::TextStringTooLong)
+        }
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
