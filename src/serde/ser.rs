@@ -182,7 +182,24 @@ impl<W: Write> Serializer for &mut Encoder<W> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        let v_len = v.len();
+        if v_len < 24 {
+            self.writer.write_all(&[(0b010_00000 | (v_len as u8))])?;
+            self.writer.write_all(v)?;
+            Ok(())
+        } else if v_len <= (u8::MAX as usize) {
+            self.writer.write_all(&[0x58, (v_len as u8)])?;
+            self.writer.write_all(v)?;
+            Ok(())
+        } else if v_len <= (u16::MAX as usize) {
+            Ok(())
+        } else if v_len <= (u32::MAX as usize) {
+            Ok(())
+        } else if v_len <= (u64::MAX as usize) {
+            Ok(())
+        } else {
+            Err(EncodeError::ByteStringTooLong)
+        }
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
