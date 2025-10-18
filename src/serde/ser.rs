@@ -192,10 +192,22 @@ impl<W: Write> Serializer for &mut Encoder<W> {
             self.writer.write_all(v)?;
             Ok(())
         } else if v_len <= (u16::MAX as usize) {
+            let encoded_value_bigend: [u8; 2] = (v_len as u16).to_be_bytes();
+            self.writer.write_all(&[0x59, encoded_value_bigend[0], encoded_value_bigend[1]])?;
+            self.writer.write_all(v)?;
             Ok(())
         } else if v_len <= (u32::MAX as usize) {
+            let encoded_value_bigend: [u8; 4] = (v_len as u32).to_be_bytes();
+            self.writer.write_all(&[0x5A, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3]])?;
+            self.writer.write_all(v)?;
             Ok(())
         } else if v_len <= (u64::MAX as usize) {
+            let encoded_value_bigend: [u8; 8] = (v_len as u64).to_be_bytes();
+            self.writer.write_all(&[0x5B, encoded_value_bigend[0], encoded_value_bigend[1],
+            encoded_value_bigend[2], encoded_value_bigend[3], encoded_value_bigend[4],
+            encoded_value_bigend[5], encoded_value_bigend[6], encoded_value_bigend[7]])?;
+            self.writer.write_all(v)?;
             Ok(())
         } else {
             Err(EncodeError::ByteStringTooLong)
