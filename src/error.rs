@@ -16,6 +16,8 @@ pub enum EncodeError {
     Serialization(String),
     #[error("Input/Output error")]
     IO(#[from] io::Error),
+    #[error("Cannot encode byte strings longer than 2^64 bytes")]
+    ByteStringTooLong,
     #[error("Cannot encode text strings longer than 2^64 bytes")]
     TextStringTooLong
 }
